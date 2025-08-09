@@ -764,7 +764,7 @@ impl<'d, T: Instance, M: Mode> Uart<'d, T, M> {
 
         let r = T::regs();
 
-        r.ctlr3().write(|w| {
+        r.ctlr3().modify(|w| {
             w.set_rtse(rts.is_some());
             w.set_ctse(cts.is_some());
         });
@@ -835,7 +835,7 @@ impl<'d, T: Instance> Uart<'d, T, Async> {
         config: Config,
     ) -> Result<Self, ConfigError> {
         into_ref!(peri, rx, tx, tx_dma, rx_dma);
-
+        T::set_remap(REMAP);
         rx.set_as_input(Pull::None);
         tx.set_as_af_output(AFType::OutputPushPull, Speed::High);
 

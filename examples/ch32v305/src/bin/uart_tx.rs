@@ -2,7 +2,7 @@
 #![no_main]
 #![feature(type_alias_impl_trait)]
 #![feature(impl_trait_in_assoc_type)]
-
+use ch32_hal::println;
 use ch32_hal::usart;
 use embassy_executor::Spawner;
 use embassy_time::{Duration, Timer};
@@ -27,14 +27,17 @@ async fn main(spawner: Spawner) -> ! {
     let p = hal::init(Default::default());
 
     // GPIO
-    spawner.spawn(blink(p.PC9.degrade())).unwrap();
+    Timer::after_millis(100).await; // Wait for the system to stabilize
+    println!("GPIO init");
+    spawner.spawn(blink(p.PA4.degrade())).unwrap();
 
     let cfg = usart::Config::default();
-    let mut uart = UartTx::new_blocking(p.USART3, p.PB10, cfg).unwrap();
+    let mut uart = UartTx::new(p.USART1, p.PB15, p.DMA1_CH4, cfg).unwrap();
 
     loop {
         Timer::after_millis(2000).await;
-
-        uart.blocking_write(b"hello world from embassy main\r\n").unwrap();
+        println!("MTF");
+        uart.write(b"hello world from embassy main\r\n").await.unwrap();
+        uart.blocking_flush().unwrap();
     }
 }
